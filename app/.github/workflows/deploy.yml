@@ -1,0 +1,27 @@
+name: Deploy to AWS EC2
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v3
+
+    - name: Copy files to EC2
+      run: |
+        sudo apt install -y rsync
+        rsync -avz -e "ssh -o StrictHostKeyChecking=no" . ubuntu@13.51.158.195:/home/ubuntu/taskmanager-api
+
+    - name: SSH into EC2 and Deploy
+      run: |
+        ssh -o StrictHostKeyChecking=no ubuntu@13.51.158.195 << 'EOF'
+          cd /home/ubuntu/taskmanager-api
+          docker-compose down
+          docker-compose up --build -d
+        EOF
